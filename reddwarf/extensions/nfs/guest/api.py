@@ -42,16 +42,16 @@ class API(object):
         """Create the routing key based on the container id"""
         return "guestagent.%s" % self.id
 
-    def list_vhosts(self):
+    def list_exports(self):
         """Make an asynchronous call to get the list of vhosts"""
-        LOG.debug(_("Listing vhosts for Instance %s"), self.id)
+        LOG.debug(_("Listing exports for Instance %s"), self.id)
         return rpc.call(self.context, self._get_routing_key(),
-                 {"method": "list_vhosts"})
+                 {"method": "list_exports"})
 
-    def create_vhost(self, fqdn):
+    def create_export(self, export_ip):
         """Make an asynchronous call to create a new vhost"""
-        LOG.debug(_("Creating vhost for Instance %s"), self.id)
+        LOG.debug(_("Creating export for Instance %s"), self.id)
         rpc.cast(self.context, self._get_routing_key(),
-                 {"method": "create_vhost",
-                  "args": {"fqdn": fqdn}
+                 {"method": "create_export",
+                  "args": {"export_ip": export_ip}
                  })

@@ -42,7 +42,7 @@ class GuestManager(service.Manager):
     def __init__(self, guest_drivers=None, *args, **kwargs):
         if not guest_drivers:
             #TODO(hub-cap): fix this, maybe make it a flag
-            guest_drivers = ['reddwarf.extensions.apache.guest.impl.Apache',
+            guest_drivers = ['reddwarf.extensions.nfs.guest.impl.NFS',
                              'reddwarf.guestagent.pkg.PkgAgent']
         classes = []
         for guest_driver in guest_drivers:

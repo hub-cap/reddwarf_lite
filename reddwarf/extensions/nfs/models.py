@@ -24,7 +24,7 @@ from reddwarf import db
 from reddwarf.common import config
 from reddwarf.common import exception
 from reddwarf.instance import models as base_models
-from reddwarf.extensions.apache.guest import api
+from reddwarf.extensions.nfs.guest import api
 # from reddwarf.guestagent.db import models as guest_models
 # from reddwarf.common.remote import create_guest_client
 
@@ -42,21 +42,20 @@ def load_and_verify(context, instance_id):
         return instance
 
 
-class Site(object):
+class Export(object):
 
-    _data_fields = ['name']
+    _data_fields = ['ip']
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, ip):
+        self.ip = ip
 
     @classmethod
     def list(self, context, instance_id):
         load_and_verify(context, instance_id)
-        enabled_vhosts = api.API(context, 
-                                 instance_id).list_vhosts()
-        return enabled_vhosts
+        exports = api.API(context,instance_id).list_exports()
+        return exports
 
     @classmethod
-    def create(self, context, instance_id, fqdn):
+    def create(self, context, instance_id, export_ip):
         load_and_verify(context, instance_id)
-        api.API(context, instance_id).create_vhost(fqdn)
+        api.API(context, instance_id).create_export(export_ip)

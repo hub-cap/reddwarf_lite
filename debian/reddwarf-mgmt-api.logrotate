@@ -1,0 +1,5 @@
+/var/log/reddwarf/reddwarf-mgmt-api.log {
+    daily
+    copytruncate
+    missingok
+}

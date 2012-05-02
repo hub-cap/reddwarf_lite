@@ -1,0 +1,16 @@
+#!/bin/sh -e
+
+if [ "$1" = "configure" ]; then
+    if ! getent passwd reddwarf > /dev/null 2>&1; then
+        adduser --system --home /var/lib/reddwarf --no-create-home --shell /bin/bash reddwarf
+    fi
+    chown -R reddwarf:root /var/lib/reddwarf /var/log/reddwarf /etc/reddwarf/reddwarf.conf
+    chmod 600 /etc/reddwarf/reddwarf.conf
+	chmod 0440 /etc/sudoers.d/reddwarf_sudoers
+	if grep -q sql_connection /etc/reddwarf/reddwarf.conf
+	then
+		su -c 'reddwarf-manage db_sync' reddwarf
+	fi
+fi
+
+#DEBHELPER#

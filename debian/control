@@ -1,0 +1,126 @@
+Source: reddwarf
+Section: net
+Priority: extra
+Maintainer: Major Hayden <major.hayden@rackspace.com>
+Build-Depends: debhelper (>= 7.0.50),
+ python-m2crypto,
+ python-crypto,
+ python-all
+Build-Depends-Indep: python-support,
+ python-setuptools,
+ python-sphinx (>> 1.0),
+ python-distutils-extra,
+ python-gflags,
+ python-mox,
+ openssl,
+ python-carrot,
+ python-kombu,
+ python-boto,
+ python-amqplib,
+ python-ipy,
+ openssh-client,
+ python-sqlalchemy-ext | python-sqlalchemy (<< 0.6.3-2),
+ python-eventlet,
+ python-routes,
+ python-webob,
+ python-cheetah,
+ python-nose,
+ python-paste,
+ python-pastedeploy (>= 1.5.0),
+ python-tempita,
+ python-migrate,
+ python-netaddr,
+ python-glance,
+ python-paramiko,
+ python-novaclient,
+ python-lockfile,
+ python-simplejson,
+ python-lxml,
+ python-feedparser,
+ python-iso8601,
+ pep8
+Build-Conflicts: python-cjson
+Standards-Version: 3.9.1
+
+
+Package: python-reddwarf
+Architecture: all
+Section: python
+Depends: ${python:Depends},
+ python-ipy,
+ python-boto,
+ python-m2crypto,
+ python-crypto,
+ python-pycurl,
+ python-daemon,
+ python-carrot,
+ python-kombu,
+ python-lockfile,
+ python-gflags,
+ openssl,
+ python-libxml2,
+ python-ldap,
+ python-sqlalchemy-ext | python-sqlalchemy (<< 0.6.3-2),
+ python-eventlet,
+ python-routes,
+ python-webob,
+ python-cheetah,
+ python-netaddr,
+ python-paste,
+ python-pastedeploy (>= 1.5.0),
+ python-tempita,
+ python-migrate,
+ python-netaddr,
+ python-glance,
+ python-novaclient,
+ python-simplejson,
+ python-lxml,
+ python-feedparser,
+ python-mox,
+ python-iso8601,
+ python-keystone,
+ sudo,
+ ${misc:Depends}
+Suggests: python-suds (>= 0.4.0),
+Conflicts: python-cjson
+Recommends: python-mysqldb
+Provides: ${python:Provides}
+Description: OpenStack Compute Python libraries
+
+Package: reddwarf-common
+Architecture: all
+Depends: python-amqplib, python-reddwarf (= ${binary:Version}), ${python:Depends}, ${misc:Depends}, adduser
+Provides: ${python:Provides}
+Description: OpenStack Compute - common files
+
+Package: reddwarf-api
+Architecture: all
+Depends: reddwarf-common (= ${binary:Version}), ${python:Depends}, ${misc:Depends}
+Description: OpenStack Compute - API frontend
+
+Package: reddwarf-taskmanager
+Architecture: all
+Depends: reddwarf-common (= ${binary:Version}), ${python:Depends}, ${misc:Depends}
+Description: OpenStack Compute - Taskmanager
+
+Package: reddwarf-decepticon
+Architecture: all
+Depends: reddwarf-common (= ${binary:Version}), ${python:Depends}, ${misc:Depends}
+Description: OpenStack Compute - Decepticon
+
+Package: reddwarf-mgmt-api
+Architecture: all
+Depends: reddwarf-common (= ${binary:Version}), ${python:Depends}, ${misc:Depends}
+Description: OpenStack Compute - MGMT API frontend
+
+Package: reddwarf-mgmt-taskmanager
+Architecture: all
+Depends: reddwarf-common (= ${binary:Version}), ${python:Depends}, ${misc:Depends}
+Description: OpenStack Compute - MGMT taskmanager frontend
+
+Package: reddwarf-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}
+Recommends: libjs-jquery
+Description: OpenStack Compute - documetation

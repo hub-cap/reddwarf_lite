@@ -1,0 +1,82 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          reddwarf-decepticon
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: reddwarf-decepticon server
+# Description:       decepticon server for reddwarf
+### END INIT INFO
+
+
+set -e
+
+DAEMON=/usr/bin/reddwarf-decepticon
+DAEMON_ARGS="--config-file=/etc/reddwarf/reddwarf-decepticon.conf"
+PIDFILE=/var/run/reddwarf/reddwarf-decepticon.pid
+
+ENABLED=true
+TACH_ENABLED=false
+
+if test -f /etc/default/reddwarf-decepticon; then
+  . /etc/default/reddwarf-decepticon
+fi
+
+if [ $TACH_ENABLED = "true" ] ; then
+        DAEMON=/usr/bin/tach
+        DAEMON_ARGS="/etc/reddwarf/tach-api.conf /usr/bin/reddwarf-decepticon"
+fi
+
+mkdir -p /var/run/reddwarf
+chown reddwarf:root /var/run/reddwarf
+
+mkdir -p /var/lock/reddwarf
+chown reddwarf:root /var/lock/reddwarf
+
+uid="$(getent passwd reddwarf | cut -f3 -d:)"
+gid="$(getent passwd reddwarf | cut -f4 -d:)"
+
+. /lib/lsb/init-functions
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+if ! [ -x ${DAEMON} ] ; then
+	exit 0
+fi
+
+case "$1" in
+  start)
+    test "$ENABLED" = "true" || exit 0
+    log_daemon_msg "Starting reddwarf decepticon" "reddwarf-decepticon"
+    start-stop-daemon --start --chdir /var/run --chuid ${uid}:${gid} -b -m --pidfile ${PIDFILE} --exec ${DAEMON} -- ${DAEMON_ARGS}
+    log_end_msg $?
+    ;;
+  stop)
+    test "$ENABLED" = "true" || exit 0
+    log_daemon_msg "Stopping reddwarf decepticon" "reddwarf-decepticon"
+    start-stop-daemon --stop --oknodo --pidfile ${PIDFILE}
+    log_end_msg $?
+    ;;
+  # Could we implement a reload if the daemon traps the -HUP signal? This would be done with:
+  # reload)
+  #   start-stop-daemon --stop --signal HUP --pidfile ${PID_FILE}
+  #   ;;
+  restart|force-reload)
+    test "$ENABLED" = "true" || exit 1
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  status)
+    test "$ENABLED" = "true" || exit 0
+    # This is to be fixed: it doesn't exist in Debian
+    status_of_proc -p $PIDFILE $DAEMON reddwarf-decepticon && exit 0 || exit $?
+    ;;
+  *)
+    log_action_msg "Usage: /etc/init.d/reddwarf-decepticon {start|stop|restart|force-reload|status}"
+    exit 1
+    ;;
+esac
+
+exit 0

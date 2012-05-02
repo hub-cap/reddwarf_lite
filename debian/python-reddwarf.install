@@ -1,0 +1,3 @@
+usr/lib/python*/dist-packages/*
+fullgitlog-reddwarf.gz usr/share/rackspace-openstack/git
+lastcommit-reddwarf.txt usr/share/rackspace-openstack/git

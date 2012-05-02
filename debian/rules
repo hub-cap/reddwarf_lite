@@ -1,0 +1,60 @@
+#!/usr/bin/make -f
+
+export MASTER_HEAD=`git log -1 --format=%h master`
+export DEVELOPMENT_HEAD=`git log -1 --format=%h development`
+export CHANGELOGENTRY="$(VERSION_STRING)"
+
+%:
+	dh $@ --with python2
+
+# If you want to run an automated build (for something like Jenkins), 
+# this is the thing for you.  Just run:
+#
+#   debian/rules automated-build
+#
+automated-build:
+	# Make a backup of the upstream debian/control
+	cp -av debian/control debian/control.pristine
+
+	# Add the current git hash to the Description field of the package
+	sed -i "s/^Description: .*$$/& (master: $(MASTER_HEAD) development: $(DEVELOPMENT_HEAD))/" debian/control
+
+	# Update the changelog
+	dch -v $(CHANGELOGENTRY) "Automated build called via debian/rules automated-build."
+
+	# Clean up
+	dh clean
+
+	# Drop in the full git log as well as the last commit
+	git log --decorate=full --oneline | gzip -9vc > fullgitlog-reddwarf.gz
+	git log -n 1 > lastcommit-reddwarf.txt
+
+	# Build it
+	dh build --with python2
+	fakeroot dh binary --with python2
+
+	# Put the upstream debian/control back in place
+	mv -v debian/control.pristine debian/control
+
+override_dh_auto_clean:
+
+override_dh_auto_build:
+
+override_dh_installdocs:
+
+override_dh_install:
+	# Install everything as dpkg normally would
+	dh_install --fail-missing
+	
+	# Set special modes for reddwarf_sudoers
+	chmod 440 $(CURDIR)/debian/reddwarf-common/etc/sudoers.d/reddwarf_sudoers
+
+override_dh_fixperms:
+	# We already set special modes via dh_install for the sudoers file
+	dh_fixperms -Xreddwarf_sudoers
+	
+	# These .gitignores exist so that nobody's personal certs get picked up
+	# during commits, but we don't want them in our packages
+	rm -f $(CURDIR)/debian/python-reddwarf/usr/share/pyshared/reddwarf/CA/.gitignore
+	rm -f $(CURDIR)/debian/python-reddwarf/usr/share/pyshared/reddwarf/CA/projects/.gitignore
+	rm -f $(CURDIR)/debian/python-reddwarf/usr/share/pyshared/reddwarf/CA/reqs/.gitignore

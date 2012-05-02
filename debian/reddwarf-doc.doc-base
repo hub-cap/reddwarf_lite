@@ -1,0 +1,9 @@
+Document: reddwarf-doc
+Title: Nova Documentation
+Author: OpenStack
+Abstract: Sphinx documentation for reddwarf
+Section: Network/File Transfer
+
+Format: HTML
+Index: /usr/share/doc/reddwarf-doc/html/index.html
+Files: /usr/share/doc/reddwarf-doc/html/*

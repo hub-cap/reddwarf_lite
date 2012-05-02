@@ -1,4 +1,4 @@
-dbaas-mycnf (0.0.1-placeholder) unstable; urgency=low
+reddwarf (0.0.1-placeholder) unstable; urgency=low
 
   * Initial package creation. Subsequent package builds will append additional
     changelog entries.

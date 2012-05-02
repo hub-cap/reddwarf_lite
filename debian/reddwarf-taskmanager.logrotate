@@ -1,0 +1,5 @@
+/var/log/reddwarf/reddwarf-taskmanager.log {
+    daily
+    copytruncate
+    missingok
+}

@@ -1,0 +1,3 @@
+usr/bin/reddwarf-api
+usr/bin/reddwarf-server
+etc/reddwarf/reddwarf.conf.sample

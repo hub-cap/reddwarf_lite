@@ -1,0 +1,13 @@
+etc/reddwarf
+var/lib/reddwarf/buckets
+var/lib/reddwarf/CA
+var/lib/reddwarf/CA/INTER
+var/lib/reddwarf/CA/newcerts
+var/lib/reddwarf/CA/private
+var/lib/reddwarf/CA/reqs
+var/lib/reddwarf/images
+var/lib/reddwarf/instances
+var/lib/reddwarf/keys
+var/lib/reddwarf/networks
+var/lib/reddwarf/tmp
+var/log/reddwarf

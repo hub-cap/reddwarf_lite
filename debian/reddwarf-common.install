@@ -1,0 +1,3 @@
+usr/bin/reddwarf-manage
+debian/reddwarf_sudoers etc/sudoers.d
+debian/reddwarf.conf    etc/reddwarf

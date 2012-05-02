@@ -1,0 +1,11 @@
+#!/bin/sh -e
+
+if [ "$1" = "configure" ]; then
+    # Only do the sync _if_ there is a sql_connection
+    if grep -q sql_connection /etc/reddwarf/reddwarf.conf
+    then
+	    su -c 'reddwarf-manage db_sync' reddwarf
+	fi
+fi
+
+#DEBHELPER#

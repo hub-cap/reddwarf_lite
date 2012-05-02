@@ -1,0 +1,14 @@
+=== modified file 'bin/reddwarf-manage'
+Index: reddwarf-2011.3~bzr1054/bin/reddwarf-manage
+===================================================================
+--- nova-2011.3~bzr1054.orig/bin/reddwarf-manage
++++ nova-2011.3~bzr1054/bin/reddwarf-manage
+@@ -1098,7 +1098,7 @@
+ 
+ def main():
+     """Parse options and call the appropriate class/method."""
+-    utils.default_flagfile()
++    utils.default_flagfile('/etc/reddwarf/reddwarf.conf')
+     argv = FLAGS(sys.argv)
+     logging.setup()
+ 

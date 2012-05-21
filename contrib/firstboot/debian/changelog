@@ -1,0 +1,86 @@
+firstboot (1.0-13) lucid; urgency=low
+
+  [ Michael Basnight ]
+  * Running a 2nd install of nova-guest to see if it fixes the goofyness
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Sun, 10 Apr 2011 21:01:00 +0100
+
+firstboot (1.0-12) lucid; urgency=low
+
+[ Nirmal Ranganathan ]
+* Created a new set of base files for labn0
+
+-- DBaaS-Dev <dbaas-dev@rackspace.com>  Thu, 31 Mar 2011 13:32:04 +0100
+
+firstboot (1.0-11) lucid; urgency=low
+
+  [ Nirmal Ranganathan ]
+  * Adding nova to sudoers list on firstboot
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Tue, 15 Mar 2011 16:23:04 +0100
+
+firstboot (1.0-10) lucid; urgency=low
+
+  [ Nirmal Ranganathan ]
+  * Adding pexpect to the install list
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Mon, 14 Mar 2011 15:46:04 +0100
+
+firstboot (1.0-9) lucid; urgency=low
+
+  [ Nirmal Ranganathan ]
+  * Removing nova-guest-init call and updating samus image files
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Mon, 14 Mar 2011 13:55:04 +0100
+
+firstboot (1.0-8) lucid; urgency=low
+
+  [ Nirmal Ranganathan ]
+  * Adding nova-guest-init calls during firstboot to initialize the guest
+    agent
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Fri, 11 Mar 2011 15:03:04 +0100
+
+firstboot (1.0-7) lucid; urgency=low
+
+  [ Michael Basnight ]
+  * Reverting the mod of the conf move
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Thur, 10 Mar 2011 14:51:34 +0100
+
+firstboot (1.0-6) lucid; urgency=low
+
+   [ Michael Basnight ]
+   * Moding the order of the nova conf move files
+
+  -- DBaaS-Dev <dbaas-dev@rackspace.com>  Thur, 10 Mar 2011 14:51:34 +0100
+
+firstboot (1.0-5) lucid; urgency=low
+
+   [ Nirmal Ranganathan ]
+   * Adding waits inbetween apt-get calls
+
+  -- DBaaS-Dev <dbaas-dev@rackspace.com>  Thur, 10 Mar 2011 14:51:34 +0100
+
+firstboot (1.0-4) lucid; urgency=low
+
+  [ Nirmal Ranganathan ]
+  * Moved all the image related files to image_files and added a few new files
+  * Updated the firstboot script to install update and restart the guest agent 
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Tue, 08 Mar 2011 18:26:15 +0100
+
+firstboot (1.0-3) lucid; urgency=low
+
+  [ Nirmal Ranganathan ]
+  * Skipped one build and have a network/apt is up check
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Tue, 08 Mar 2011 18:26:15 +0100
+
+firstboot (1.0-1) lucid; urgency=low
+
+  [ Nirmal Ranganathan ]
+  * Created the initial firstboot/statup script with packaging
+
+ -- DBaaS-Dev <dbaas-dev@rackspace.com>  Tue, 08 Mar 2011 12:11:43 +0100
+

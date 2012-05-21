@@ -1,0 +1,11 @@
+Source: reddwarf-config
+Priority: extra
+Maintainer: DBaaS-Dev <dbaas-dev@rackspace.com>
+Standards-Version: 3.9.1
+
+
+Package: reddwarf-config
+Architecture: all
+Provides: reddwarf-config
+Section: base
+Description: Red Dwarf - Nova - Guest Configuration

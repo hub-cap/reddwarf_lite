@@ -1,0 +1,14 @@
+Source: firstboot
+Priority: extra
+Maintainer: DBaaS-Dev <dbaas-dev@rackspace.com>
+Standards-Version: 3.9.1
+
+
+Package: firstboot
+Architecture: all
+Provides: firstboot
+Section: base
+Description: Firstboot script for a Guest VM or Container.
+ Contains the script required for initializing a guest to a 
+ required state for the specified Platform
+

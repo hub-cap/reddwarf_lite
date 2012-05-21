@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+# Verbose mode
+#export DH_VERBOSE=1
+
+
+DEB_PYTHON_SYSTEM=pysupport
+
+%:
+	dh $@
+
+override_dh_gencontrol:
+	if dpkg-vendor --derives-from ubuntu ; then \
+		dh_gencontrol -- -T$(CURDIR)/debian/ubuntu_control_vars ; \
+	else \
+		dh_gencontrol -- -T$(CURDIR)/debian/debian_control_vars ; \
+	fi

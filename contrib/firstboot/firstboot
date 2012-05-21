@@ -1,0 +1,34 @@
+#!/bin/sh
+# A script to update a new guest machine to install the required packages
+# requried for the Nova Guest Agent and start up the guest agent with the
+# correct configuration
+
+echo "Running the firstboot script..."
+
+NOVA_CONFDIR="/etc/nova"
+
+# Install the required packages for the Nova Guest Agent
+apt-get update
+apt-get install -y --allow-unauthenticated reddwarf-config nova-guest
+
+# Update the configuration file
+if [ -e "$NOVA_CONFDIR/dbaas.conf" ]; then
+    mv $NOVA_CONFDIR/nova.conf $NOVA_CONFDIR/nova.conf.old
+    mv $NOVA_CONFDIR/dbaas.conf $NOVA_CONFDIR/nova.conf
+fi
+
+# Update the permissions for nova in the sudoers file
+# TODO(rnirmal): Find the best way to do this
+chmod +w /etc/sudoers
+echo "nova    ALL=NOPASSWD: ALL" >> /etc/sudoers
+chmod -w /etc/sudoers
+
+# Restart the nova-guest service
+# Stop and then start to prevent any errors
+service nova-guest stop
+wait
+service nova-guest start
+
+echo "Successfully completed the setup of the Guest Agent"
+
+exit 0

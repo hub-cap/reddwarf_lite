@@ -209,7 +209,7 @@ class FreshInstanceTasks(FreshInstance):
     def _create_server(self, flavor_id, image_id,
                        service_type, block_device_mapping):
         nova_client = create_nova_client(self.context)
-        files = {"/etc/guest_info": "guest_id=%s\nservice_type=%s\n" %
+        files = {"/etc/guest_info": "--guest_id=%s\n--service_type=%s\n" %
                                     (self.id, service_type)}
         name = self.hostname or self.name
         bdmap = block_device_mapping

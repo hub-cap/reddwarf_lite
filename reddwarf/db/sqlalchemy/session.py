@@ -43,12 +43,14 @@ def configure_db(options, models_mapper=None):
         from reddwarf.dns import models as dns_models
         from reddwarf.extensions.mysql import models as mysql_models
         from reddwarf.guestagent import models as agent_models
+        from reddwarf.decepticon import models as decepticon_models
 
         model_modules = [
             base_models,
             dns_models,
             mysql_models,
             agent_models,
+            decepticon_models,
         ]
 
         models = {}

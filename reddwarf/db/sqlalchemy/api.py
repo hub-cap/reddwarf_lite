@@ -133,3 +133,9 @@ def _limits(query_func, model, conditions, limit, marker, marker_column=None):
     if marker:
         query = query.filter(marker_column > marker)
     return query.order_by(marker_column).limit(limit)
+
+
+def get_usage_by_time(model, time):
+    db_session = session.get_session()
+    result = db_session.query(model).filter(model.end_time < time)
+    return result

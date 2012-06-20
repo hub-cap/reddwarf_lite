@@ -17,12 +17,6 @@ if [ -e "$NOVA_CONFDIR/dbaas.conf" ]; then
     mv $NOVA_CONFDIR/dbaas.conf $NOVA_CONFDIR/nova.conf
 fi
 
-# Update the permissions for nova in the sudoers file
-# TODO(rnirmal): Find the best way to do this
-chmod +w /etc/sudoers
-echo "nova    ALL=NOPASSWD: ALL" >> /etc/sudoers
-chmod -w /etc/sudoers
-
 # Restart the nova-guest service
 # Stop and then start to prevent any errors
 service nova-guest stop

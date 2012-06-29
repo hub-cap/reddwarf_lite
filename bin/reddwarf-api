@@ -33,6 +33,7 @@ possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
 if os.path.exists(os.path.join(possible_topdir, 'reddwarf', '__init__.py')):
     sys.path.insert(0, possible_topdir)
 
+from reddwarf.common import new_relic
 from reddwarf import version
 from reddwarf.common import config
 from reddwarf.common import wsgi
@@ -63,6 +64,7 @@ if __name__ == '__main__':
         config.Config.load_paste_config('reddwarf', options, args)
         conf, app = config.Config.load_paste_app('reddwarf', options, args)
         db_api.configure_db(conf)
+        app = new_relic.wrap(app)
         server = wsgi.Server()
         server.start(app, int(options.get('port') or conf['bind_port']),
             conf['bind_host'])

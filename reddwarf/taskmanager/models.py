@@ -48,7 +48,9 @@ LOG = logging.getLogger(__name__)
 
 use_nova_server_volume = config.Config.get_bool('use_nova_server_volume',
                                                 default=False)
-
+use_decepticon = config.Config.get('use_decepticon', default='True')
+if utils.bool_from_string(use_decepticon):
+    from reddwarf.decepticon.api import API as Decepticon_API
 
 class FreshInstanceTasks(FreshInstance):
 
@@ -140,6 +142,31 @@ class FreshInstanceTasks(FreshInstance):
             err = inst_models.InstanceTasks.BUILDING_ERROR_SERVER
             self._log_and_raise(e, msg, err)
         return server, volume_info
+
+        try:
+            self._send_usage_create_event(flavor_ram)
+
+        except Exception as ex:
+            LOG.error("Error during decepticon create-event call.")
+            LOG.error(ex)
+
+    def _send_usage_create_event(self, flavor_ram):
+        use_decepticon = config.Config.get('use_decepticon', default='False')
+        LOG.info("config use_decepticon: %s" % use_decepticon)
+        if utils.bool_from_string(use_decepticon):
+            decepticon_api = Decepticon_API(self.context)
+            created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
+            LOG.info("Making decepticon create-event call")
+            decepticon_api.create_event(event_type='reddwarf.instance.create.end',
+                                        volume_size=self.volume_size,
+                                        instance_size=flavor_ram,
+                                        tenant_id=self.tenant_id,
+                                        instance_id=self.id,
+                                        instance_name=self.name,
+                                        launched_at=created_time,
+                                        created_at=created_time,
+                                        nova_instance_id=self.server_id,
+                                        nova_volume_id=self.volume_id)
 
     def _log_and_raise(self, exc, message, task_status):
         LOG.error(message)
@@ -312,6 +339,14 @@ class BuiltInstanceTasks(BuiltInstance):
         poll_until(server_is_finished, sleep_time=2,
                    time_out=int(config.Config.get('server_delete_time_out')))
 
+        try:
+            self._send_usage_delete_event(time_now)
+
+        except Exception as ex:
+            LOG.error("Error during decepticon delete-event call.")
+            LOG.error(ex)
+
+
     def resize_volume(self, new_size):
         LOG.debug("%s: Resizing volume for instance: %s to %r GB"
                   % (greenthread.getcurrent(), self.server.id, new_size))
@@ -327,6 +362,14 @@ class BuiltInstanceTasks(BuiltInstance):
             self.nova_client.volumes.rescan_server_volume(self.server,
                                                           self.volume_id)
             self.guest.resize_fs(self.get_volume_mountpoint())
+
+            try:
+                self._send_usage_modify_event(new_volume_size=new_size)
+
+            except Exception as ex:
+                LOG.error("Error during decepticon modify-event (resize-volume) call.")
+                LOG.error(ex)
+
         except PollTimeOut as pto:
             LOG.error("Timeout trying to rescan or resize the attached volume "
                       "filesystem for volume: %s" % self.volume_id)
@@ -405,6 +448,14 @@ class BuiltInstanceTasks(BuiltInstance):
                 LOG.debug("Updating instance %s to flavor_id %s."
                           % (self.id, new_flavor_id))
                 self.update_db(flavor_id=new_flavor_id)
+
+                try:
+                    self._send_usage_modify_event(new_instance_size=new_memory_size)
+
+                except Exception as ex:
+                    LOG.error("Error during decepticon modify-event (resize-flavor) call.")
+                    LOG.error(ex)
+
             except PollTimeOut as pto:
                 LOG.error("Timeout trying to resize the flavor for instance "
                           " %s" % self.db_info.id)
@@ -470,3 +521,53 @@ class BuiltInstanceTasks(BuiltInstance):
         """Refreshes the compute server field."""
         server = self.nova_client.servers.get(self.server.id)
         self.server = server
+
+    def _send_usage_delete_event(self, deleted_time):
+        use_decepticon = config.Config.get('use_decepticon', default='False')
+        LOG.info("config use_decepticon: %s" % use_decepticon)
+        if utils.bool_from_string(use_decepticon):
+            decepticon_api = Decepticon_API(self.context)
+            formatted_time_now = deleted_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+            created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
+            flavor_size = self.nova_client.flavors.get(self.flavor_id).ram
+            LOG.info("Making decepticon delete-event call")
+            decepticon_api.delete_event(event_type='reddwarf.instance.delete.end',
+                                        volume_size=self.volume_size,
+                                        instance_size=flavor_size,
+                                        tenant_id=self.tenant_id,
+                                        instance_id=self.id,
+                                        instance_name=self.name,
+                                        launched_at=created_time,
+                                        created_at=created_time,
+                                        nova_instance_id=self.server_id,
+                                        nova_volume_id=self.volume_id,
+                                        deleted_at=formatted_time_now)
+
+    def _send_usage_modify_event(self, new_volume_size=None, new_instance_size=None):
+        if new_volume_size:
+            current_volume_size = new_volume_size
+        else:
+            current_volume_size = self.volume_size
+        if new_instance_size:
+            current_instance_size = new_instance_size
+        else:
+            current_instance_size = self.nova_client.flavors.get(self.flavor_id).ram
+
+        use_decepticon = config.Config.get('use_decepticon', default='False')
+        LOG.info("config use_decepticon: %s" % use_decepticon)
+        if utils.bool_from_string(use_decepticon):
+            decepticon_api = Decepticon_API(self.context)
+            time_now = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
+            LOG.info("Making decepticon modify-event call")
+            decepticon_api.modify_event(event_type='reddwarf.instance.modify.end',
+                                        volume_size=current_volume_size,
+                                        instance_size=current_instance_size,
+                                        tenant_id=self.tenant_id,
+                                        instance_id=self.id,
+                                        instance_name=self.name,
+                                        launched_at=time_now,
+                                        created_at=created_time,
+                                        nova_instance_id=self.server_id,
+                                        nova_volume_id=self.volume_id,
+                                        modify_at=time_now)

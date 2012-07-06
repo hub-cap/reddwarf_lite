@@ -29,8 +29,9 @@ def wrap(app):
     """
     try:
         newrelic_conf = config.Config.get('newrelic_conf', None)
+        newrelic_env = config.Config.get('newrelic_env', None)
         if newrelic_conf:
-            newrelic.agent.initialize(newrelic_conf)
+            newrelic.agent.initialize(newrelic_conf, newrelic_env)
             return newrelic.agent.wsgi_application()(app)
     except Exception as e:
         LOG.error("Error loading newrelic config or agent")

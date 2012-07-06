@@ -269,6 +269,7 @@ class DecepticonManager(service.Manager):
         usage = models.UsageModel.create(id=payload['instance_id'],
                           nova_instance_id=payload['nova_instance_id'],
                           instance_size=payload['memory_mb'],
+                          instance_name=payload['instance_name'],
                           nova_volume_id=payload['nova_volume_id'],
                           volume_size=payload['volume_size'],
                           end_time=payload['launched_at'],

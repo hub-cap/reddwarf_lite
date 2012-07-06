@@ -82,7 +82,7 @@ class DecepticonManager(service.Manager):
 
     def _get_connection_string(self):
         rabbit_host = CONFIG.get('rabbit_host', '127.0.0.1')
-        rabbit_user = CONFIG.get('rabbit_user', 'user')
+        rabbit_user = CONFIG.get('rabbit_userid', 'user')
         rabbit_password = CONFIG.get('rabbit_password', 'password')
         amqp_connection = (
             "amqp://%(rabbit_user)s:%(rabbit_password)s@%(rabbit_host)s//"
@@ -391,20 +391,29 @@ class DecepticonManager(service.Manager):
         usage.delete()
 
     def _send_usage_event(self, message):
-        LOG.debug("attempting to send message ====== %s" % message)
+        try:
+            LOG.debug("attempting to send message ====== %s" % message)
 
-        channel = self.connection.channel()
-        routing_key = 'reddwarf.events'
-        nova_exchange = Exchange("nova", type="topic", durable=False)
+            channel = self.connection.channel()
+            LOG.debug("create channel")
+            routing_key = 'reddwarf.events'
+            nova_exchange = Exchange("nova", type="topic", durable=False)
+            LOG.debug("create exchange")
 
-        notification_queue = Queue("reddwarf", nova_exchange,
-                                    routing_key=routing_key,
-                                    durable=False,
-                                    auto_delete=False)(channel)
-        notification_queue.declare()
+            notification_queue = Queue("reddwarf", nova_exchange,
+                                        routing_key=routing_key,
+                                        durable=False,
+                                        auto_delete=False)(channel)
+            LOG.debug("create queue")
+            notification_queue.declare()
+            LOG.debug("queue declared")
 
-        p = Producer(channel, nova_exchange, serializer="json")
-        p.publish(message, routing_key=routing_key)
+            p = Producer(channel, nova_exchange, serializer="json")
+            LOG.debug("create producer")
+            p.publish(message, routing_key=routing_key)
+            LOG.debug("publish done")
+        except Exception as e:
+            LOG.exception(e)
 
     def _convert_datetime_to_string(self, time):
         ret_time = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M:%S")

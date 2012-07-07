@@ -103,6 +103,10 @@ class DecepticonManager(service.Manager):
         for instance in usage:
             self._process_end_time(instance, utc_now)
 
+    def get_total_seconds(self, td):
+        ms = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 1e6)
+        return ms / 1e6
+
     def _process_end_time(self, instance, utc_now):
         end_time = instance['end_time']
         delta = utc_now - end_time
@@ -110,12 +114,12 @@ class DecepticonManager(service.Manager):
         LOG.info("%(delta)s = %(utc_now)s - %(end_time)s" % locals())
 
         # calculate if time is over the cutoff time period
-        if delta.total_seconds() > CUTOFF:
+        if self.get_total_seconds(delta) > CUTOFF:
             LOG.info("instance is over 23 hours old %s"
-                     % delta.total_seconds())
+                     % self.get_total_seconds(delta))
 
             # is time over 24 hours? if so split it up
-            if delta.total_seconds() > MAX_TIME:
+            if self.get_total_seconds(delta) > MAX_TIME:
                 # time is over 24 hours need to split the time up
                 for day in range(delta.days):
                     # add 24 hours to the current end_time
@@ -292,7 +296,7 @@ class DecepticonManager(service.Manager):
         usage.save()
 
         #create the usage event for modify instance
-        if payload['event_id']:
+        if 'event_id' in payload:
             event_id = payload['event_id']
         else:
             event_id = str(uuid.uuid4())

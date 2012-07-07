@@ -36,7 +36,7 @@ class UsageModel(models.ModelBase):
                     'nova_volume_id',
                     'volume_size',
                     'end_time']
-    _table_name = 'usage'
+    _table_name = 'usage_events'
 
     def __init__(self, **kwargs):
         self.merge_attributes(kwargs)
@@ -91,5 +91,5 @@ class UsageModel(models.ModelBase):
 
 def persisted_models():
     return {
-        'usage': UsageModel,
+        'usage_events': UsageModel,
         }

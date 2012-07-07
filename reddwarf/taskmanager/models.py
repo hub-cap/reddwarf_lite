@@ -361,8 +361,6 @@ class BuiltInstanceTasks(BuiltInstance):
             self.update_db(volume_size=volume.size)
             self.nova_client.volumes.rescan_server_volume(self.server,
                                                           self.volume_id)
-            self.guest.resize_fs(self.get_volume_mountpoint())
-
             try:
                 self._send_usage_modify_event(new_volume_size=new_size)
 
@@ -374,6 +372,7 @@ class BuiltInstanceTasks(BuiltInstance):
             LOG.error("Timeout trying to rescan or resize the attached volume "
                       "filesystem for volume: %s" % self.volume_id)
         except Exception as e:
+            LOG.error(e)
             LOG.error("Error encountered trying to rescan or resize the "
                       "attached volume filesystem for volume: %s"
                       % self.volume_id)

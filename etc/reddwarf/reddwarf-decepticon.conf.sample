@@ -10,7 +10,7 @@ periodic_runs=3600
 
 # AMQP Connection info
 rabbit_host=127.0.0.1
-rabbit_user=guest
+rabbit_userid=guest
 rabbit_password=f7999d1955c5014aa32c
 
 # SQLAlchemy connection string for the reference implementation

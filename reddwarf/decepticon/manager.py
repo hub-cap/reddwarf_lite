@@ -72,6 +72,7 @@ class DecepticonManager(service.Manager):
 
     def __init__(self, *args, **kwargs):
         LOG.info("Init DecepticonManager %s %s" % (args, kwargs))
+        self.routing_key = CONFIG.get('usage_routing_key', 'reddwarf.events')
         amqp_connection = self._get_connection_string()
         self.connection = BrokerConnection(amqp_connection)
         super(DecepticonManager, self).__init__(*args, **kwargs)
@@ -400,22 +401,13 @@ class DecepticonManager(service.Manager):
 
             channel = self.connection.channel()
             LOG.debug("create channel")
-            routing_key = 'reddwarf.events'
             nova_exchange = Exchange("nova", type="topic", durable=False)
             LOG.debug("create exchange")
 
-            notification_queue = Queue("reddwarf", nova_exchange,
-                                        routing_key=routing_key,
-                                        durable=False,
-                                        auto_delete=False)(channel)
-            LOG.debug("create queue")
-            notification_queue.declare()
-            LOG.debug("queue declared")
-
             p = Producer(channel, nova_exchange, serializer="json")
             LOG.debug("create producer")
-            p.publish(message, routing_key=routing_key)
-            LOG.debug("publish done")
+            p.publish(message, routing_key=self.routing_key)
+            LOG.debug("published to (%s) done" % self.routing_key)
         except Exception as e:
             LOG.exception(e)
 

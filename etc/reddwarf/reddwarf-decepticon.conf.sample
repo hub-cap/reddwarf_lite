@@ -47,6 +47,9 @@ reddwarf_auth_url = http://0.0.0.0:5000/v2.0
 #region = DFW
 #data_center = DFW1
 
+# Routing key for usage events
+usage_routing_key = reddwarf.events
+
 # Manager impl for the taskmanager
 decepticon_manager=reddwarf.decepticon.manager.DecepticonManager
 

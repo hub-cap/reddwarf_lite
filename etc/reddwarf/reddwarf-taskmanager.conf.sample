@@ -78,3 +78,5 @@ notifier_queue_transport = memory
 
 [app:reddwarf-taskmanager]
 paste.app_factory = reddwarf.taskmanager.service:app_factory
+
+use_decepticon = True

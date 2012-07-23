@@ -46,6 +46,7 @@ reddwarf_auth_url = http://0.0.0.0:5000/v2.0
 #service_code = CloudDatabase
 #region = DFW
 #data_center = DFW1
+#environment = LOCAL
 
 # Routing key for usage events
 usage_routing_key = reddwarf.events

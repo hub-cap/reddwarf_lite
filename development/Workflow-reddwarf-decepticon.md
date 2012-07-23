@@ -27,7 +27,7 @@ EVENTS types
             {
                 'method': "create_event",
                 'args': {
-                    'event_type': "reddwarf.instance.create.end",
+                    'event_type': "reddwarf.instance.create",
                     'volume_size': 2,
                     'instance_size': 512,
                     'tenant_id': "123456",
@@ -61,13 +61,33 @@ EVENTS types
 
 @ means that this atribute is not defined right now. Not sure if this will be needed.
 
-- **reddwarf.instance.update/modify**
+- **reddwarf.instance.update_flavor/modify_flavor**
   - message payload example to decepticon
 
             {
                 'method': "modify_event",
                 'args': {
-                    'event_type': "reddwarf.instance.modify.end",
+                    'event_type': "reddwarf.instance.modify_flavor",
+                    'volume_size': 2,
+                    'instance_size': 512,
+                    'tenant_id': "123456",
+                    'instance_id': 'asdf-qwert-reddwarf-id-2',
+                    'instance_name': "my new db instance",
+                    'launched_at': '2012-06-19T15:28:12Z',
+                    'created_at': '2012-06-19T15:28:02Z',
+                    'nova_instance_id': 'nova-instance-id-2',
+                    'nova_volume_id': 'nova-volume-id-2',
+                    'modify_at': '2012-06-19T15:28:12Z',
+                }
+            }
+
+- **reddwarf.instance.update_volume/modify_volume**
+  - message payload example to decepticon
+
+            {
+                'method': "modify_event",
+                'args': {
+                    'event_type': "reddwarf.instance.modify_volume",
                     'volume_size': 2,
                     'instance_size': 512,
                     'tenant_id': "123456",
@@ -87,7 +107,7 @@ EVENTS types
             {
                 'method': "delete_event",
                 'args': {
-                    'event_type': "reddwarf.instance.modify.end",
+                    'event_type': "reddwarf.instance.delete",
                     'volume_size': 2,
                     'instance_size': 512,
                     'tenant_id': "123456",

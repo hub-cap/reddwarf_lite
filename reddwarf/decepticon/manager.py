@@ -46,6 +46,7 @@ service_code = CONFIG.get('service_code', 'CloudDatabase')
 message_version = CONFIG.get('message_version', '1')
 region = CONFIG.get('region', 'LOCAL_DEV')
 data_center = CONFIG.get('data_center', 'DEV1')
+environment =  CONFIG.get('environment', 'LOCAL')
 
 EVENT_MESSAGE = """
 <event xmlns="http://docs.rackspace.com/core/event"
@@ -53,7 +54,9 @@ EVENT_MESSAGE = """
        version="%(message_version)s"
        id="%(event_id)s"
        type="USAGE"
+       rootAction="%(event_action)s"
        tenantId="%(tenantId)s"
+       environment="%(environment)s"
        dataCenter="%(data_center)s"
        region="%(region)s"
        resourceId="%(resourceId)s"
@@ -129,6 +132,7 @@ class DecepticonManager(service.Manager):
                     body = {
                         "event_type": "reddwarf.instance.exists",
                         "payload": {
+                            "event_type": "reddwarf.instance.exists",
                             "instance_id": instance['id'],
                             "start_time": end_time,
                             "end_time": et2,
@@ -144,6 +148,7 @@ class DecepticonManager(service.Manager):
                 body = {
                     "event_type": "reddwarf.instance.exists",
                     "payload": {
+                        "event_type": "reddwarf.instance.exists",
                         "instance_id": instance['id'],
                         "start_time": end_time,
                         "end_time": utc_now,
@@ -259,10 +264,11 @@ class DecepticonManager(service.Manager):
             payload =  body['payload']
             LOG.debug("Got payload: %s", payload)
             event_mapper = {
-                'reddwarf.instance.create.end': self._handle_create,
+                'reddwarf.instance.create': self._handle_create,
                 'reddwarf.instance.exists': self._handle_exists,
-                'reddwarf.instance.modify.end': self._handle_modify,
-                'reddwarf.instance.delete.end': self._handle_delete,
+                'reddwarf.instance.modify_flavor': self._handle_modify,
+                'reddwarf.instance.modify_volume': self._handle_modify,
+                'reddwarf.instance.delete': self._handle_delete,
             }
             handle = event_mapper[event_type]
             handle(payload)
@@ -291,6 +297,7 @@ class DecepticonManager(service.Manager):
         tenantId = usage['tenant_id']
         resourceName = usage['instance_name']
 
+        event_action = payload['event_type']
         startTime = payload['start_time']
         endTime = payload['end_time']
         usage.end_time = endTime
@@ -304,7 +311,9 @@ class DecepticonManager(service.Manager):
         event_variables = {
             'message_version': message_version,
             'event_id': event_id,
+            'event_action': event_action,
             'tenantId': tenantId,
+            'environment': environment,
             'data_center': data_center,
             'region': region,
             'resourceId': resourceId,
@@ -327,6 +336,7 @@ class DecepticonManager(service.Manager):
         old_memory_mb = usage['instance_size']
         old_volume_size = usage['volume_size']
 
+        event_action = payload['event_type']
         volume_size = payload['volume_size']
         memory_mb = payload['memory_mb']
         tenantId = payload['tenant_id']
@@ -347,7 +357,9 @@ class DecepticonManager(service.Manager):
         event_variables = {
             'message_version': message_version,
             'event_id': event_id,
+            'event_action': event_action,
             'tenantId': tenantId,
+            'environment': environment,
             'data_center': data_center,
             'region': region,
             'resourceId': resourceId,
@@ -370,6 +382,7 @@ class DecepticonManager(service.Manager):
         memory_mb = usage['instance_size']
         volume_size = usage['volume_size']
 
+        event_action = payload['event_type']
         tenantId = payload['tenant_id']
         resourceName = payload['instance_name']
         endTime = payload['deleted_at']
@@ -380,7 +393,9 @@ class DecepticonManager(service.Manager):
         event_variables = {
             'message_version': message_version,
             'event_id': event_id,
+            'event_action': event_action,
             'tenantId': tenantId,
+            'environment': environment,
             'data_center': data_center,
             'region': region,
             'resourceId': resourceId,

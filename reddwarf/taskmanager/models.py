@@ -157,7 +157,7 @@ class FreshInstanceTasks(FreshInstance):
             decepticon_api = Decepticon_API(self.context)
             created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
             LOG.info("Making decepticon create-event call")
-            decepticon_api.create_event(event_type='reddwarf.instance.create.end',
+            decepticon_api.create_event(event_type='reddwarf.instance.create',
                                         volume_size=self.volume_size,
                                         instance_size=flavor_ram,
                                         tenant_id=self.tenant_id,
@@ -530,7 +530,7 @@ class BuiltInstanceTasks(BuiltInstance):
             created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
             flavor_size = self.nova_client.flavors.get(self.flavor_id).ram
             LOG.info("Making decepticon delete-event call")
-            decepticon_api.delete_event(event_type='reddwarf.instance.delete.end',
+            decepticon_api.delete_event(event_type='reddwarf.instance.delete',
                                         volume_size=self.volume_size,
                                         instance_size=flavor_size,
                                         tenant_id=self.tenant_id,
@@ -545,10 +545,12 @@ class BuiltInstanceTasks(BuiltInstance):
     def _send_usage_modify_event(self, new_volume_size=None, new_instance_size=None):
         if new_volume_size:
             current_volume_size = new_volume_size
+            event_type_value = 'reddwarf.instance.modify_volume'
         else:
             current_volume_size = self.volume_size
         if new_instance_size:
             current_instance_size = new_instance_size
+            event_type_value = 'reddwarf.instance.modify_flavor'
         else:
             current_instance_size = self.nova_client.flavors.get(self.flavor_id).ram
 
@@ -559,7 +561,7 @@ class BuiltInstanceTasks(BuiltInstance):
             time_now = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
             created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
             LOG.info("Making decepticon modify-event call")
-            decepticon_api.modify_event(event_type='reddwarf.instance.modify.end',
+            decepticon_api.modify_event(event_type=event_type_value,
                                         volume_size=current_volume_size,
                                         instance_size=current_instance_size,
                                         tenant_id=self.tenant_id,

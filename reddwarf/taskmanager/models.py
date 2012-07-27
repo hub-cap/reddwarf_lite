@@ -338,12 +338,10 @@ class BuiltInstanceTasks(BuiltInstance):
                    time_out=int(config.Config.get('server_delete_time_out')))
 
         try:
-            self._send_usage_delete_event(time_now)
-
+            self._send_usage_delete_event(datetime.now())
         except Exception as ex:
             LOG.error("Error during decepticon delete-event call.")
             LOG.error(ex)
-
 
     def resize_volume(self, new_size):
         LOG.debug("%s: Resizing volume for instance: %s to %r GB"

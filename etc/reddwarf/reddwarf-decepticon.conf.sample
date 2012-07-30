@@ -48,6 +48,9 @@ reddwarf_auth_url = http://0.0.0.0:5000/v2.0
 #data_center = DFW1
 #environment = LOCAL
 
+# Datetime string format for Usage startTime/endTimes
+time_format = %Y-%m-%dT%H:%M:%SZ
+
 # Routing key for usage events
 usage_routing_key = reddwarf.events
 

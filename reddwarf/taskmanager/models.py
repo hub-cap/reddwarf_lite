@@ -50,6 +50,7 @@ use_nova_server_volume = config.Config.get_bool('use_nova_server_volume',
                                                 default=False)
 use_decepticon = config.Config.get('use_decepticon', default='True')
 if utils.bool_from_string(use_decepticon):
+    time_format = "%Y-%m-%dT%H:%M:%SZ"
     from reddwarf.decepticon.api import API as Decepticon_API
 
 class FreshInstanceTasks(FreshInstance):
@@ -153,7 +154,7 @@ class FreshInstanceTasks(FreshInstance):
         LOG.info("config use_decepticon: %s" % use_decepticon)
         if utils.bool_from_string(use_decepticon):
             decepticon_api = Decepticon_API(self.context)
-            created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
+            created_time = self.db_info.created.strftime(time_format)
             LOG.info("Making decepticon create-event call")
             decepticon_api.create_event(event_type='reddwarf.instance.create',
                                         volume_size=self.volume_size,
@@ -338,7 +339,7 @@ class BuiltInstanceTasks(BuiltInstance):
                    time_out=int(config.Config.get('server_delete_time_out')))
 
         try:
-            self._send_usage_delete_event(datetime.now())
+            self._send_usage_delete_event(datetime.utcnow())
         except Exception as ex:
             LOG.error("Error during decepticon delete-event call.")
             LOG.error(ex)
@@ -522,8 +523,8 @@ class BuiltInstanceTasks(BuiltInstance):
         LOG.info("config use_decepticon: %s" % use_decepticon)
         if utils.bool_from_string(use_decepticon):
             decepticon_api = Decepticon_API(self.context)
-            formatted_time_now = deleted_time.strftime("%Y-%m-%dT%H:%M:%SZ")
-            created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
+            formatted_time_now = deleted_time.strftime(time_format)
+            created_time = self.db_info.created.strftime(time_format)
             flavor_size = self.nova_client.flavors.get(self.flavor_id).ram
             LOG.info("Making decepticon delete-event call")
             decepticon_api.delete_event(event_type='reddwarf.instance.delete',
@@ -554,8 +555,8 @@ class BuiltInstanceTasks(BuiltInstance):
         LOG.info("config use_decepticon: %s" % use_decepticon)
         if utils.bool_from_string(use_decepticon):
             decepticon_api = Decepticon_API(self.context)
-            time_now = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-            created_time = self.db_info.created.strftime("%Y-%m-%dT%H:%M:%SZ")
+            time_now = datetime.utcnow().strftime(time_format)
+            created_time = self.db_info.created.strftime(time_format)
             LOG.info("Making decepticon modify-event call")
             decepticon_api.modify_event(event_type=event_type_value,
                                         volume_size=current_volume_size,

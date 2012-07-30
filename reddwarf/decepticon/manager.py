@@ -41,6 +41,7 @@ CONFIG = config.Config
 MAX_TIME = 60*60*24 # 1 day in seconds
 CUTOFF = 60*60*23 # 23 hours in seconds
 
+time_format = CONFIG.get('time_format', '%Y-%m-%dT%H:%M:%SZ')
 resource_type = CONFIG.get('resource_type', 'MYSQL')
 service_code = CONFIG.get('service_code', 'CloudDatabase')
 message_version = CONFIG.get('message_version', '1')
@@ -114,6 +115,8 @@ class DecepticonManager(service.Manager):
         return ms / 1e6
 
     def _process_end_time(self, instance, utc_now):
+        """Splits usage-instance time to multiple "exists" events with
+        MAX_TIME spans if needed"""
         end_time = instance['end_time']
         delta = utc_now - end_time
         LOG.info(instance)
@@ -136,8 +139,8 @@ class DecepticonManager(service.Manager):
                         "payload": {
                             "event_type": "reddwarf.instance.exists",
                             "instance_id": instance['id'],
-                            "start_time": end_time,
-                            "end_time": et2,
+                            "start_time": end_time.strftime(time_format),
+                            "end_time": et2.strftime(time_format),
                             }
                     }
                     # send the event
@@ -152,12 +155,22 @@ class DecepticonManager(service.Manager):
                     "payload": {
                         "event_type": "reddwarf.instance.exists",
                         "instance_id": instance['id'],
-                        "start_time": end_time,
-                        "end_time": utc_now,
+                        "start_time": end_time.strftime(time_format),
+                        "end_time": utc_now.strftime(time_format),
                         }
                 }
                 # send the event
                 self._process_event(body)
+
+    def _event_action_time_split_up(self, instance_id, strft_end_time):
+        """Split up time slices (create exists events) for an event action
+        (modify flavor/volume, delete) if needed"""
+        usage = models.UsageModel.find_by(id=instance_id)
+        LOG.debug("Got usage model: %s", usage)
+        LOG.debug("Splitting up time slices for action event.")
+        end_time = datetime.datetime.strptime(strft_end_time,
+                                              time_format)
+        self._process_end_time(usage, end_time)
 
     def create_event(self, context,
                     event_type,
@@ -330,11 +343,13 @@ class DecepticonManager(service.Manager):
         self._send_usage_event(EVENT_MESSAGE % event_variables)
 
     def _handle_modify(self, payload):
-        usage = models.UsageModel.find_by(id=payload['instance_id'])
-        LOG.debug("Got usage model: %s", usage)
+        self._event_action_time_split_up(payload['instance_id'],
+                                         payload['modify_at'])
 
+        usage = models.UsageModel.find_by(id=payload['instance_id'])
+        LOG.debug("Got post-split-up usage model: %s", usage)
         resourceId = usage['id']
-        startTime = usage['end_time'].strftime("%Y-%m-%dT%H:%M:%SZ")
+        startTime = usage['end_time'].strftime(time_format)
         old_memory_mb = usage['instance_size']
         old_volume_size = usage['volume_size']
 
@@ -343,7 +358,7 @@ class DecepticonManager(service.Manager):
         memory_mb = payload['memory_mb']
         tenantId = payload['tenant_id']
         resourceName = payload['instance_name']
-        endTime = payload['launched_at']
+        endTime = payload['modify_at']
 
 
         usage.volume_size = volume_size
@@ -376,11 +391,13 @@ class DecepticonManager(service.Manager):
         self._send_usage_event(EVENT_MESSAGE % event_variables)
 
     def _handle_delete(self, payload):
-        usage = models.UsageModel.find_by(id=payload['instance_id'])
-        LOG.debug("Got usage model: %s", usage)
+        self._event_action_time_split_up(payload['instance_id'],
+                                         payload['deleted_at'])
 
+        usage = models.UsageModel.find_by(id=payload['instance_id'])
+        LOG.debug("Got post-split-up usage model: %s", usage)
         resourceId = usage['id']
-        startTime = usage['end_time'].strftime("%Y-%m-%dT%H:%M:%SZ")
+        startTime = usage['end_time'].strftime(time_format)
         memory_mb = usage['instance_size']
         volume_size = usage['volume_size']
 
@@ -429,5 +446,5 @@ class DecepticonManager(service.Manager):
             LOG.exception(e)
 
     def _convert_datetime_to_string(self, time):
-        ret_time = datetime.datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
-        return ret_time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        ret_time = datetime.datetime.strptime(time, time_format)
+        return ret_time.strftime(time_format)

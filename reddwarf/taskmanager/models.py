@@ -81,6 +81,11 @@ class FreshInstanceTasks(FreshInstance):
 
         if not self.db_info.task_status.is_error:
             self.update_db(task_status=inst_models.InstanceTasks.NONE)
+        try:
+            self._send_usage_create_event(flavor_ram)
+        except Exception as ex:
+            LOG.error("Error during decepticon create-event call.")
+            LOG.error(ex)
 
     def _create_server_volume(self, flavor_id, image_id, service_type,
                               volume_size):
@@ -142,13 +147,6 @@ class FreshInstanceTasks(FreshInstance):
             err = inst_models.InstanceTasks.BUILDING_ERROR_SERVER
             self._log_and_raise(e, msg, err)
         return server, volume_info
-
-        try:
-            self._send_usage_create_event(flavor_ram)
-
-        except Exception as ex:
-            LOG.error("Error during decepticon create-event call.")
-            LOG.error(ex)
 
     def _send_usage_create_event(self, flavor_ram):
         use_decepticon = config.Config.get('use_decepticon', default='False')

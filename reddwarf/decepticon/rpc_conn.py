@@ -14,7 +14,7 @@
 #    under the License.
 
 
-from reddwarf.rpc import impl_kombu
+from reddwarf.openstack.common.rpc import impl_kombu
 
 
 # Copied from ceilometer project

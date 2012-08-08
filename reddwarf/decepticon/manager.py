@@ -73,6 +73,8 @@ EVENT_MESSAGE = """
 class DecepticonManager(service.Manager):
     """Manages the tasks within a Guest VM."""
 
+    RPC_API_VERSION = "1.0"
+
     def __init__(self, *args, **kwargs):
         LOG.info("Init DecepticonManager %s %s" % (args, kwargs))
         self.routing_key = CONFIG.get('usage_routing_key', 'reddwarf.events')

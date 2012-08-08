@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from reddwarf.rpc import impl_kombu
+from reddwarf.openstack.common.rpc import impl_kombu
 
 
 class DecepticonConnection(impl_kombu.Connection):

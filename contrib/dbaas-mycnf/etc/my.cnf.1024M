@@ -56,8 +56,7 @@ skip-external-locking
 #
 ####key_buffer = 16M
 key_buffer_size = 100M
-####max_allowed_packet = 16M
-max_allowed_packet = 2M
+max_allowed_packet = 16M
 thread_stack = 192K
 ####thread_cache_size = 8
 thread_cache_size = 8
@@ -129,7 +128,7 @@ max_heap_table_size = 32M
 # Table cache
 table_open_cache = 512
 table_definition_cache = 512
-open_files_limit = 1024
+open_files_limit = 6552
 
 # Connections limit
 max_user_connections = 200
@@ -138,6 +137,11 @@ max_connections = 210
 # Default Storage Engine
 default_storage_engine = innodb
 
+# Force innodb, disable the built-in innodb engine and always
+# load the ha_innodb_plugin
+innodb=FORCE
+ignore-builtin-innodb
+plugin-load=ha_innodb_plugin.so
 
 #binlog_do_db = include_database_name
 #binlog_ignore_db = include_database_name

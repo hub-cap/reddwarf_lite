@@ -81,6 +81,8 @@ class DecepticonManager(service.Manager):
         self.routing_key = CONFIG.get('usage_routing_key', 'reddwarf.events')
         amqp_connection = self._get_connection_string()
         self.connection = BrokerConnection(amqp_connection)
+        channel_pool_count = int(CONFIG.get('channel_pool_count', 10))
+        self.channel_pool = self.connection.ChannelPool(channel_pool_count)
         super(DecepticonManager, self).__init__(*args, **kwargs)
 
     def init_host(self):
@@ -430,20 +432,26 @@ class DecepticonManager(service.Manager):
         usage.delete()
 
     def _send_usage_event(self, message):
+        channel = None
         try:
             LOG.debug("attempting to send message ====== %s" % message)
-
-            channel = self.connection.channel()
-            LOG.debug("create channel")
+            channel = self.channel_pool.acquire()
+            LOG.debug("create channel [%r]" % channel)
             nova_exchange = Exchange("nova", type="topic", durable=False)
-            LOG.debug("create exchange")
+            LOG.debug("create exchange [%r]" % nova_exchange)
 
             p = Producer(channel, nova_exchange, serializer="json")
-            LOG.debug("create producer")
+            LOG.debug("create producer [%r]" % p)
             p.publish(message, routing_key=self.routing_key)
-            LOG.debug("published to (%s) done" % self.routing_key)
+            LOG.debug("published to (%s) done, releaseing channel" %
+                        self.routing_key)
         except Exception as e:
             LOG.exception(e)
+            raise e
+        finally:
+            if channel:
+                channel.release()
+
 
     def _convert_datetime_to_string(self, time):
         ret_time = datetime.datetime.strptime(time, time_format)

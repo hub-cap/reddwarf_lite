@@ -12,6 +12,7 @@ periodic_runs=3600
 rabbit_host=127.0.0.1
 rabbit_userid=guest
 rabbit_password=f7999d1955c5014aa32c
+channel_pool_count = 20
 
 # SQLAlchemy connection string for the reference implementation
 # registry server. Any valid SQLAlchemy connection string is fine.

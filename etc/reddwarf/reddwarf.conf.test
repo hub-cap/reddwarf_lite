@@ -15,6 +15,8 @@ bind_host = 0.0.0.0
 bind_port = 8779
 
 # AMQP Connection info
+rabbit_host=127.0.0.1
+rabbit_userid=guest
 rabbit_password=f7999d1955c5014aa32c
 
 # SQLAlchemy connection string for the reference implementation
@@ -34,7 +36,7 @@ sql_connection = sqlite:///reddwarf_test.sqlite
 sql_idle_timeout = 3600
 
 #DB Api Implementation
-db_api_implementation = "reddwarf.db.sqlalchemy.api"
+db_api_implementation = reddwarf.db.sqlalchemy.api
 
 # Path to the extensions
 api_extensions_path = reddwarf/extensions
@@ -79,6 +81,8 @@ agent_call_high_timeout = 100
 
 server_delete_time_out=10
 use_nova_server_volume = True
+
+use_decepticon = True
 
 # ============ notifer queue kombu connection options ========================
 

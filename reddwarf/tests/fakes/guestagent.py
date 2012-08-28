@@ -109,17 +109,22 @@ class FakeGuest(object):
 
     def prepare(self, memory_mb, databases, users, device_path=None,
                 mount_point=None):
+        from reddwarf.instance.models import DBInstance
         from reddwarf.instance.models import InstanceServiceStatus
         from reddwarf.instance.models import ServiceStatuses
         from reddwarf.guestagent.models import AgentHeartBeat
         LOG.debug("users... %s" % users)
         LOG.debug("databases... %s" % databases)
+        instance_name = DBInstance.find_by(id=self.id).name
         self.create_user(users)
         self.create_database(databases)
 
         def update_db():
             status = InstanceServiceStatus.find_by(instance_id=self.id)
-            status.status = ServiceStatuses.RUNNING
+            if instance_name.endswith('GUEST_ERROR'):
+                status.status = ServiceStatuses.FAILED
+            else:
+                status.status = ServiceStatuses.RUNNING
             status.save()
             AgentHeartBeat.create(instance_id=self.id)
         EventSimulator.add_event(1.0, update_db)

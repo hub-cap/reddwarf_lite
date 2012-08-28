@@ -31,7 +31,7 @@ sql_connection = mysql://root:e1a2c042c828d3566d0a@localhost/reddwarf
 sql_idle_timeout = 3600
 
 #DB Api Implementation
-db_api_implementation = "reddwarf.db.sqlalchemy.api"
+db_api_implementation = reddwarf.db.sqlalchemy.api
 
 # Path to the extensions
 api_extensions_path = reddwarf/extensions

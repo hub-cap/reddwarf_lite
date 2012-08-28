@@ -22,6 +22,7 @@ import uuid
 
 from reddwarf.common import config
 from reddwarf.common import service
+from reddwarf.common import utils
 from reddwarf import decepticon
 from reddwarf.decepticon import models
 from reddwarf.decepticon import rpc_conn
@@ -104,7 +105,7 @@ class DecepticonManager(service.Manager):
         LOG.info("find the instances that are >23 hours old")
 
         # calculate the usage time (now-23 hours)
-        utc_now = datetime.datetime.utcnow()
+        utc_now = utils.utcnow()
         utc_usage_time = utc_now - datetime.timedelta(hours=23)
         usage = models.UsageModel.get_usage_by_time(time=utc_usage_time)
 
@@ -120,6 +121,7 @@ class DecepticonManager(service.Manager):
         """Splits usage-instance time to multiple "exists" events with
         MAX_TIME spans if needed"""
         end_time = instance['end_time']
+        LOG.info("%(utc_now)s - %(end_time)s" % locals())
         delta = utc_now - end_time
         LOG.info(instance)
         LOG.info("%(delta)s = %(utc_now)s - %(end_time)s" % locals())
@@ -141,8 +143,8 @@ class DecepticonManager(service.Manager):
                         "payload": {
                             "event_type": "reddwarf.instance.exists",
                             "instance_id": instance['id'],
-                            "start_time": end_time.strftime(time_format),
-                            "end_time": et2.strftime(time_format),
+                            "start_time": end_time,
+                            "end_time": et2,
                             }
                     }
                     # send the event
@@ -157,22 +159,22 @@ class DecepticonManager(service.Manager):
                     "payload": {
                         "event_type": "reddwarf.instance.exists",
                         "instance_id": instance['id'],
-                        "start_time": end_time.strftime(time_format),
-                        "end_time": utc_now.strftime(time_format),
+                        "start_time": end_time,
+                        "end_time": utc_now,
                         }
                 }
                 # send the event
                 self._process_event(body)
 
-    def _event_action_time_split_up(self, instance_id, strft_end_time):
+    def _event_action_time_split_up(self, instance_id, end_time_strft):
         """Split up time slices (create exists events) for an event action
         (modify flavor/volume, delete) if needed"""
+        end_datetime = datetime.datetime.strptime(end_time_strft,
+                                                  time_format)
         usage = models.UsageModel.find_by(id=instance_id)
         LOG.debug("Got usage model: %s", usage)
         LOG.debug("Splitting up time slices for action event.")
-        end_time = datetime.datetime.strptime(strft_end_time,
-                                              time_format)
-        self._process_end_time(usage, end_time)
+        self._process_end_time(usage, end_datetime)
 
     def create_event(self, context,
                     event_type,
@@ -294,13 +296,15 @@ class DecepticonManager(service.Manager):
             print traceback.format_exc()
 
     def _handle_create(self, payload):
+        end_datetime = datetime.datetime.strptime(payload['launched_at'],
+                                                  time_format)
         usage = models.UsageModel.create(id=payload['instance_id'],
                           nova_instance_id=payload['nova_instance_id'],
                           instance_size=payload['memory_mb'],
                           instance_name=payload['instance_name'],
                           nova_volume_id=payload['nova_volume_id'],
                           volume_size=payload['volume_size'],
-                          end_time=payload['launched_at'],
+                          end_time=end_datetime,
                           tenant_id=payload['tenant_id'])
         usage.save()
 
@@ -316,8 +320,9 @@ class DecepticonManager(service.Manager):
 
         event_action = payload['event_type']
         startTime = payload['start_time']
-        endTime = payload['end_time']
-        usage.end_time = endTime
+        end_datetime = datetime.datetime.strptime(payload['end_time'],
+                                                  time_format)
+        usage.end_time = end_datetime
         usage.save()
 
         #create the usage event for modify instance
@@ -335,8 +340,8 @@ class DecepticonManager(service.Manager):
             'region': region,
             'resourceId': resourceId,
             'resourceName': resourceName,
-            'startTime': startTime,
-            'endTime': endTime,
+            'startTime': startTime.strftime(time_format),
+            'endTime': end_datetime.strftime(time_format),
             'service_code': service_code,
             'resource_type': resource_type,
             'memory_mb': memory_mb,
@@ -351,7 +356,7 @@ class DecepticonManager(service.Manager):
         usage = models.UsageModel.find_by(id=payload['instance_id'])
         LOG.debug("Got post-split-up usage model: %s", usage)
         resourceId = usage['id']
-        startTime = usage['end_time'].strftime(time_format)
+        startTime = usage['end_time']
         old_memory_mb = usage['instance_size']
         old_volume_size = usage['volume_size']
 
@@ -360,12 +365,13 @@ class DecepticonManager(service.Manager):
         memory_mb = payload['memory_mb']
         tenantId = payload['tenant_id']
         resourceName = payload['instance_name']
-        endTime = payload['modify_at']
+        end_datetime = datetime.datetime.strptime(payload['modify_at'],
+                                                  time_format)
 
 
         usage.volume_size = volume_size
         usage.instance_size = memory_mb
-        usage.end_time = endTime
+        usage.end_time = end_datetime
         usage.save()
 
         #create the usage event for modify instance
@@ -383,8 +389,8 @@ class DecepticonManager(service.Manager):
             'region': region,
             'resourceId': resourceId,
             'resourceName': resourceName,
-            'startTime': startTime,
-            'endTime': endTime,
+            'startTime': startTime.strftime(time_format),
+            'endTime': end_datetime.strftime(time_format),
             'service_code': service_code,
             'resource_type': resource_type,
             'memory_mb': memory_mb,
@@ -399,7 +405,7 @@ class DecepticonManager(service.Manager):
         usage = models.UsageModel.find_by(id=payload['instance_id'])
         LOG.debug("Got post-split-up usage model: %s", usage)
         resourceId = usage['id']
-        startTime = usage['end_time'].strftime(time_format)
+        startTime = usage['end_time']
         memory_mb = usage['instance_size']
         volume_size = usage['volume_size']
 
@@ -421,7 +427,7 @@ class DecepticonManager(service.Manager):
             'region': region,
             'resourceId': resourceId,
             'resourceName': resourceName,
-            'startTime': startTime,
+            'startTime': startTime.strftime(time_format),
             'endTime': endTime,
             'service_code': service_code,
             'resource_type': resource_type,

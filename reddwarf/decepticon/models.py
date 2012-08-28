@@ -14,10 +14,10 @@
 #    under the License.
 
 import logging
-import datetime
 
 
 from reddwarf.common import models
+from reddwarf.common import utils
 from reddwarf.common.exception import InvalidModelError
 from reddwarf.common.exception import ModelNotFoundError
 from reddwarf import db
@@ -49,7 +49,7 @@ class UsageModel(models.ModelBase):
         return usage
 
     def save(self):
-        self['updated'] = datetime.datetime.utcnow()
+        self['updated'] = utils.utcnow()
         LOG.debug(_("Saving %s: %s") %
             (self.__class__.__name__, self.__dict__))
         return db.db_api.save(self)

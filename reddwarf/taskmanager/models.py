@@ -84,6 +84,9 @@ class FreshInstanceTasks(FreshInstance):
             self.update_db(task_status=inst_models.InstanceTasks.NONE)
         try:
             self._send_usage_create_event(flavor_ram)
+        except PollTimeOut as pto:
+            LOG.error("Timeout for service changing to active. "
+                      "No usage create-event sent.")
         except Exception as ex:
             LOG.error("Error during decepticon create-event call.")
             LOG.error(ex)
@@ -153,6 +156,32 @@ class FreshInstanceTasks(FreshInstance):
         use_decepticon = config.Config.get('use_decepticon', default='False')
         LOG.info("config use_decepticon: %s" % use_decepticon)
         if utils.bool_from_string(use_decepticon):
+
+            def service_is_active():
+                service_status = InstanceServiceStatus.\
+                                    find_by(instance_id=self.id).get_status()
+                if service_status == ServiceStatuses.RUNNING:
+                    return True
+                elif service_status not in [ServiceStatuses.NEW,
+                                            ServiceStatuses.BUILDING]:
+                    raise ReddwarfError("Can not send usage event due to "
+                                        "service status: %s" % service_status)
+
+                c_id = self.db_info.compute_instance_id
+                nova_client = create_nova_client(self.context)
+                server_status =  nova_client.servers.get(c_id).status
+                if server_status in [InstanceStatus.ERROR,
+                                     InstanceStatus.FAILED]:
+                    raise ReddwarfError("Can not send usage event due to "
+                                        "server status: %s" % server_status)
+                return False
+
+            utils.poll_until(service_is_active,
+                            sleep_time=int(config.Config.get('usage_sleep_time',
+                                                              default='1')),
+                            time_out=int(config.Config.get('usage_timeout',
+                                                            default='300')))
+
             decepticon_api = Decepticon_API(self.context)
             created_time = self.db_info.created.strftime(time_format)
             LOG.info("Making decepticon create-event call")

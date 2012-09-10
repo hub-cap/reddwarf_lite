@@ -51,12 +51,12 @@ class UsageModel(models.ModelBase):
     def save(self):
         self['updated'] = utils.utcnow()
         LOG.debug(_("Saving %s: %s") %
-            (self.__class__.__name__, self.__dict__))
+                  (self.__class__.__name__, self.__dict__))
         return db.db_api.save(self)
 
     def delete(self):
         LOG.debug(_("Deleting %s: %s") %
-            (self.__class__.__name__, self.__dict__))
+                  (self.__class__.__name__, self.__dict__))
         return db.db_api.delete(self)
 
     def merge_attributes(self, values):
@@ -81,7 +81,8 @@ class UsageModel(models.ModelBase):
 
     @classmethod
     def get_usage_by_time(cls, **kwargs):
-        return db.db_query.get_usage_by_time(cls, **cls._process_conditions(kwargs))
+        return db.db_query.get_usage_by_time(cls,
+                                             **cls._process_conditions(kwargs))
 
     @classmethod
     def _process_conditions(cls, raw_conditions):
@@ -90,6 +91,4 @@ class UsageModel(models.ModelBase):
 
 
 def persisted_models():
-    return {
-        'usage_events': UsageModel,
-        }
+    return {'usage_events': UsageModel}

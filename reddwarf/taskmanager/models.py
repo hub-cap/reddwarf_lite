@@ -53,6 +53,7 @@ if utils.bool_from_string(use_decepticon):
     time_format = "%Y-%m-%dT%H:%M:%SZ"
     from reddwarf.decepticon.api import API as Decepticon_API
 
+
 class FreshInstanceTasks(FreshInstance):
 
     def create_instance(self, flavor_id, flavor_ram, image_id,
@@ -158,8 +159,8 @@ class FreshInstanceTasks(FreshInstance):
         if utils.bool_from_string(use_decepticon):
 
             def service_is_active():
-                service_status = InstanceServiceStatus.\
-                                    find_by(instance_id=self.id).get_status()
+                service = InstanceServiceStatus.find_by(instance_id=self.id)
+                service_status = service.get_status()
                 if service_status == ServiceStatuses.RUNNING:
                     return True
                 elif service_status not in [ServiceStatuses.NEW,
@@ -169,18 +170,17 @@ class FreshInstanceTasks(FreshInstance):
 
                 c_id = self.db_info.compute_instance_id
                 nova_client = create_nova_client(self.context)
-                server_status =  nova_client.servers.get(c_id).status
+                server_status = nova_client.servers.get(c_id).status
                 if server_status in [InstanceStatus.ERROR,
                                      InstanceStatus.FAILED]:
                     raise ReddwarfError("Can not send usage event due to "
                                         "server status: %s" % server_status)
                 return False
 
-            utils.poll_until(service_is_active,
-                            sleep_time=int(config.Config.get('usage_sleep_time',
-                                                              default='1')),
-                            time_out=int(config.Config.get('usage_timeout',
-                                                            default='300')))
+            sleep_time = int(config.Config.get('usage_sleep_time', '1'))
+            usage_timeout = int(config.Config.get('usage_timeout', '300'))
+            utils.poll_until(service_is_active, sleep_time=sleep_time,
+                             time_out=usage_timeout)
 
             decepticon_api = Decepticon_API(self.context)
             created_time = self.db_info.created.strftime(time_format)
@@ -391,7 +391,8 @@ class BuiltInstanceTasks(BuiltInstance):
                 self._send_usage_modify_event(new_volume_size=new_size)
 
             except Exception as ex:
-                LOG.error("Error during decepticon modify-event (resize-volume) call.")
+                LOG.error("Error during decepticon modify-event "
+                          "(resize-volume) call.")
                 LOG.error(ex)
 
         except PollTimeOut as pto:
@@ -475,10 +476,12 @@ class BuiltInstanceTasks(BuiltInstance):
                 self.update_db(flavor_id=new_flavor_id)
 
                 try:
-                    self._send_usage_modify_event(new_instance_size=new_memory_size)
+                    self._send_usage_modify_event(
+                        new_instance_size=new_memory_size)
 
                 except Exception as ex:
-                    LOG.error("Error during decepticon modify-event (resize-flavor) call.")
+                    LOG.error("Error during decepticon modify-event "
+                              "(resize-flavor) call.")
                     LOG.error(ex)
 
             except PollTimeOut as pto:
@@ -568,7 +571,8 @@ class BuiltInstanceTasks(BuiltInstance):
                                         nova_volume_id=self.volume_id,
                                         deleted_at=formatted_time_now)
 
-    def _send_usage_modify_event(self, new_volume_size=None, new_instance_size=None):
+    def _send_usage_modify_event(self, new_volume_size=None,
+                                 new_instance_size=None):
         if new_volume_size:
             current_volume_size = new_volume_size
             event_type_value = 'reddwarf.instance.modify_volume'
@@ -578,7 +582,8 @@ class BuiltInstanceTasks(BuiltInstance):
             current_instance_size = new_instance_size
             event_type_value = 'reddwarf.instance.modify_flavor'
         else:
-            current_instance_size = self.nova_client.flavors.get(self.flavor_id).ram
+            ram_size = self.nova_client.flavors.get(self.flavor_id).ram
+            current_instance_size = ram_size
 
         use_decepticon = config.Config.get('use_decepticon', default='False')
         LOG.info("config use_decepticon: %s" % use_decepticon)

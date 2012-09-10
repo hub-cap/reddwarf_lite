@@ -39,8 +39,8 @@ from kombu.utils import kwdict, reprcall
 LOG = logging.getLogger(__name__)
 CONFIG = config.Config
 
-MAX_TIME = 60*60*24 # 1 day in seconds
-CUTOFF = 60*60*23 # 23 hours in seconds
+MAX_TIME = 60 * 60 * 24  # 1 day in seconds
+CUTOFF = 60 * 60 * 23  # 23 hours in seconds
 
 time_format = CONFIG.get('time_format', '%Y-%m-%dT%H:%M:%SZ')
 resource_type = CONFIG.get('resource_type', 'MYSQL')
@@ -48,7 +48,7 @@ service_code = CONFIG.get('service_code', 'CloudDatabase')
 message_version = CONFIG.get('message_version', '1')
 region = CONFIG.get('region', 'LOCAL_DEV')
 data_center = CONFIG.get('data_center', 'DEV1')
-environment =  CONFIG.get('environment', 'LOCAL')
+environment = CONFIG.get('environment', 'LOCAL')
 
 EVENT_MESSAGE = """
 <event xmlns="http://docs.rackspace.com/core/event"
@@ -71,6 +71,7 @@ EVENT_MESSAGE = """
                       memory="%(memory_mb)s"
                       storage="%(volume_size)s"/>
 </event>"""
+
 
 class DecepticonManager(service.Manager):
     """Manages the tasks within a Guest VM."""
@@ -145,12 +146,12 @@ class DecepticonManager(service.Manager):
                             "instance_id": instance['id'],
                             "start_time": end_time,
                             "end_time": et2,
-                            }
+                        }
                     }
                     # send the event
                     self._process_event(body)
                     # update the end_time with the new end_time
-                    end_time=et2
+                    end_time = et2
                     # continue loop
             else:
                 # time is not over 24 hours but create an exists now
@@ -161,7 +162,7 @@ class DecepticonManager(service.Manager):
                         "instance_id": instance['id'],
                         "start_time": end_time,
                         "end_time": utc_now,
-                        }
+                    }
                 }
                 # send the event
                 self._process_event(body)
@@ -176,18 +177,19 @@ class DecepticonManager(service.Manager):
         LOG.debug("Splitting up time slices for action event.")
         self._process_end_time(usage, end_datetime)
 
-    def create_event(self, context,
-                    event_type,
-                    volume_size,
-                    instance_size,
-                    tenant_id,
-                    instance_id,
-                    instance_name,
-                    launched_at,
-                    created_at,
-                    nova_instance_id,
-                    nova_volume_id,
-                    event_id=None):
+    def create_event(self,
+                     context,
+                     event_type,
+                     volume_size,
+                     instance_size,
+                     tenant_id,
+                     instance_id,
+                     instance_name,
+                     launched_at,
+                     created_at,
+                     nova_instance_id,
+                     nova_volume_id,
+                     event_id=None):
         """ this handles when a create event occurs """
         LOG.info(_("test_method called with context %s") % context)
         body = {
@@ -203,23 +205,24 @@ class DecepticonManager(service.Manager):
                 "nova_instance_id": nova_instance_id,
                 "nova_volume_id": nova_volume_id,
                 "event_id": event_id
-                }
+            }
         }
         self._process_event(body)
 
-    def modify_event(self, context,
-                    event_type,
-                    volume_size,
-                    instance_size,
-                    tenant_id,
-                    instance_id,
-                    instance_name,
-                    launched_at,
-                    created_at,
-                    nova_instance_id,
-                    nova_volume_id,
-                    modify_at,
-                    event_id=None):
+    def modify_event(self,
+                     context,
+                     event_type,
+                     volume_size,
+                     instance_size,
+                     tenant_id,
+                     instance_id,
+                     instance_name,
+                     launched_at,
+                     created_at,
+                     nova_instance_id,
+                     nova_volume_id,
+                     modify_at,
+                     event_id=None):
         """ this handles when a modify event occurs """
         LOG.info(_("test_method called with context %s") % context)
         body = {
@@ -237,23 +240,24 @@ class DecepticonManager(service.Manager):
                 "nova_volume_id": nova_volume_id,
                 "modify_at": modify_at,
                 "event_id": event_id
-                }
+            }
         }
         self._process_event(body)
 
-    def delete_event(self, context,
-                    event_type,
-                    volume_size,
-                    instance_size,
-                    tenant_id,
-                    instance_id,
-                    instance_name,
-                    launched_at,
-                    created_at,
-                    nova_instance_id,
-                    nova_volume_id,
-                    deleted_at,
-                    event_id=None):
+    def delete_event(self,
+                     context,
+                     event_type,
+                     volume_size,
+                     instance_size,
+                     tenant_id,
+                     instance_id,
+                     instance_name,
+                     launched_at,
+                     created_at,
+                     nova_instance_id,
+                     nova_volume_id,
+                     deleted_at,
+                     event_id=None):
         """ this handles when a delete event occurs """
         LOG.info(_("test_method called with context %s") % context)
         body = {
@@ -271,7 +275,7 @@ class DecepticonManager(service.Manager):
                 "nova_volume_id": nova_volume_id,
                 "deleted_at": deleted_at,
                 "event_id": event_id
-                }
+            }
         }
         self._process_event(body)
 
@@ -280,7 +284,7 @@ class DecepticonManager(service.Manager):
         try:
             event_type = body['event_type']
             LOG.debug("Got event_type: %s", event_type)
-            payload =  body['payload']
+            payload = body['payload']
             LOG.debug("Got payload: %s", payload)
             event_mapper = {
                 'reddwarf.instance.create': self._handle_create,
@@ -298,14 +302,15 @@ class DecepticonManager(service.Manager):
     def _handle_create(self, payload):
         end_datetime = datetime.datetime.strptime(payload['launched_at'],
                                                   time_format)
-        usage = models.UsageModel.create(id=payload['instance_id'],
-                          nova_instance_id=payload['nova_instance_id'],
-                          instance_size=payload['memory_mb'],
-                          instance_name=payload['instance_name'],
-                          nova_volume_id=payload['nova_volume_id'],
-                          volume_size=payload['volume_size'],
-                          end_time=end_datetime,
-                          tenant_id=payload['tenant_id'])
+        usage = models.UsageModel.create(
+            id=payload['instance_id'],
+            nova_instance_id=payload['nova_instance_id'],
+            instance_size=payload['memory_mb'],
+            instance_name=payload['instance_name'],
+            nova_volume_id=payload['nova_volume_id'],
+            volume_size=payload['volume_size'],
+            end_time=end_datetime,
+            tenant_id=payload['tenant_id'])
         usage.save()
 
     def _handle_exists(self, payload):
@@ -367,7 +372,6 @@ class DecepticonManager(service.Manager):
         resourceName = payload['instance_name']
         end_datetime = datetime.datetime.strptime(payload['modify_at'],
                                                   time_format)
-
 
         usage.volume_size = volume_size
         usage.instance_size = memory_mb
@@ -450,14 +454,13 @@ class DecepticonManager(service.Manager):
             LOG.debug("create producer [%r]" % p)
             p.publish(message, routing_key=self.routing_key)
             LOG.debug("published to (%s) done, releaseing channel" %
-                        self.routing_key)
+                      self.routing_key)
         except Exception as e:
             LOG.exception(e)
             raise e
         finally:
             if channel:
                 channel.release()
-
 
     def _convert_datetime_to_string(self, time):
         ret_time = datetime.datetime.strptime(time, time_format)

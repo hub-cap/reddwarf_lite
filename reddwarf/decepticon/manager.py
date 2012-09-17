@@ -325,8 +325,7 @@ class DecepticonManager(service.Manager):
 
         event_action = payload['event_type']
         startTime = payload['start_time']
-        end_datetime = datetime.datetime.strptime(payload['end_time'],
-                                                  time_format)
+        end_datetime = payload['end_time']
         usage.end_time = end_datetime
         usage.save()
 

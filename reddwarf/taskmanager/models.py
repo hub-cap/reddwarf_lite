@@ -84,6 +84,7 @@ class FreshInstanceTasks(FreshInstance):
         if not self.db_info.task_status.is_error:
             self.update_db(task_status=inst_models.InstanceTasks.NONE)
         try:
+            self._get_volume_uuid()
             self._send_usage_create_event(flavor_ram)
         except PollTimeOut as pto:
             LOG.error("Timeout for service changing to active. "
@@ -152,6 +153,28 @@ class FreshInstanceTasks(FreshInstance):
             err = inst_models.InstanceTasks.BUILDING_ERROR_SERVER
             self._log_and_raise(e, msg, err)
         return server, volume_info
+
+    def _get_volume_uuid(self):
+        """ Gets the volume uuid from nova since it no longer
+            comes back on the create call."""
+        def service_has_volume_uuid():
+            c_id = self.db_info.compute_instance_id
+            nova_client = create_nova_client(self.context)
+            server = nova_client.servers.get(c_id)
+            server_dict = server._info
+            LOG.debug("Server response: %s" % server_dict)
+            volume_id = None
+            for volume in server_dict.get('os:volumes', []):
+                volume_id = volume.get('id')
+            if volume_id:
+                self.update_db(volume_id=volume_id)
+                return True
+            return False
+
+        sleep_time = int(config.Config.get('volume_sleep_time', '2'))
+        volume_timeout = int(config.Config.get('volume_timeout', '30'))
+        utils.poll_until(service_has_volume_uuid, sleep_time=sleep_time,
+                              time_out=volume_timeout)
 
     def _send_usage_create_event(self, flavor_ram):
         use_decepticon = config.Config.get('use_decepticon', default='False')
@@ -368,6 +391,7 @@ class BuiltInstanceTasks(BuiltInstance):
                    time_out=int(config.Config.get('server_delete_time_out')))
 
         try:
+            self._get_volume_uuid()
             self._send_usage_delete_event(datetime.utcnow())
         except Exception as ex:
             LOG.error("Error during decepticon delete-event call.")
